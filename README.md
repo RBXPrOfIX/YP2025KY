@@ -4,7 +4,6 @@
 **Клиент-серверное приложение для поиска схожих музыкальных треков по текстам песен**  
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/Framework-FastAPI-green)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## 📖 Описание
 Проект представляет собой интеллектуальную систему для анализа текстов песен и поиска семантически схожих треков. Реализованы:
@@ -27,7 +26,7 @@
 - **Сервер**: FastAPI, SQLAlchemy, Uvicorn
 - **Клиент**: PyQt5, Requests
 - **Анализ данных**: spaCy, Gensim, Scikit-learn
-- **База данных**: SQLite (+ Redis для кэширования)
+- **База данных**: SQLite 
 - **Тестирование**: Locust, Pytest
 - **Деплой**: Docker, Docker Compose
 
@@ -60,7 +59,7 @@
 python server.py
 ```
 - Доступен на `http://localhost:8000`
-- Документация API: `http://localhost:8000/docs`
+- Документация API: `[http://localhost:8000/docs](https://www.lyrics.com/lyrics_api.php)`
 
 **Клиент:**
 ```bash
@@ -120,11 +119,10 @@ GET http://localhost:8000/get_lyrics?track_name=Bohemian%20Rhapsody&artist=Queen
 
 ## 📈 Производительность
 - **Нагрузочное тестирование** (Locust):  
-  ![Locust Report](media/locust_stats.png)
+  ![Locust Report]([media/locust_stats.png](https://github.com/RBXPrOfIX/YP2025KY/blob/main/Screenshot_4.png))
 - **Оптимизации**:
   - Пул соединений SQLAlchemy.
   - Индексы в БД.
-  - Кэширование через Redis.
 
 ---
 
