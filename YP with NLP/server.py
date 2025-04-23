@@ -21,7 +21,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExec
 from transformers import (
     AutoTokenizer,
     AutoModel,
-    AutoModelForSequenceClassification
+    AutoModelForSequenceClassification,
+    XLMRobertaTokenizer
 )
 import torch
 from scipy.special import softmax
@@ -95,9 +96,9 @@ semantic_model = SemanticModel()
 # --- Эмоциональная модель (multilingual sentiment) ---
 class EmotionModel:
     def __init__(self):
-        self.tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-xlm-roberta-base-sentiment")
+        self.tokenizer = XLMRobertaTokenizer.from_pretrained("cardiffnlp/twitter-xlm-roberta-base-sentiment")
         self.model     = AutoModelForSequenceClassification.from_pretrained("cardiffnlp/twitter-xlm-roberta-base-sentiment")
-
+    
     def get_emotion_score(self, text: str) -> float:
         # Разбиваем на строки, анализируем каждую
         parts  = [line.strip() for line in text.split("\n") if line.strip()]
