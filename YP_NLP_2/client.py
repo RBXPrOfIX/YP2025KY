@@ -83,17 +83,18 @@ class LyricsDialog(QWidget):
 
 
 class LyricsClient(QMainWindow):
-    _threads = []  # Храним активные потоки
+    _threads = []
+
     def __init__(self):
         super().__init__()
-        self.last_track = None
-        self.last_artist = None
+        self.is_dark = False
         self.dialogs = []
-
-        self._configure_palette()
+        # Инициализируем UI сначала
         self._initialize_ui()
+        # Применяем светлую тему по умолчанию
+        self.apply_light_theme()
 
-    def _configure_palette(self):
+    def apply_light_theme(self):
         palette = QPalette()
         palette.setColor(QPalette.Window, QColor("#f5f5f5"))
         palette.setColor(QPalette.Base, QColor("#ffffff"))
@@ -102,10 +103,29 @@ class LyricsClient(QMainWindow):
         palette.setColor(QPalette.Button, QColor("#4a6fa5"))
         palette.setColor(QPalette.ButtonText, QColor("#ffffff"))
         self.setPalette(palette)
+        self.setStyleSheet(self._light_style_sheet())
+        # Сброс стилей меток
+        self.track_label.setStyleSheet("")
+        self.artist_label.setStyleSheet("")
+        self.similar_label.setStyleSheet("")
 
-        self.setStyleSheet(self._style_sheet())
+    def apply_dark_theme(self):
+        palette = QPalette()
+        palette.setColor(QPalette.Window, QColor("#000000"))
+        palette.setColor(QPalette.Base, QColor("#121212"))
+        palette.setColor(QPalette.AlternateBase, QColor("#1e1e1e"))
+        palette.setColor(QPalette.Text, QColor("#E0E0E0"))
+        palette.setColor(QPalette.Button, QColor("#D32F2F"))
+        palette.setColor(QPalette.ButtonText, QColor("#ffffff"))
+        self.setPalette(palette)
+        self.setStyleSheet(self._dark_style_sheet())
+        # Подсветка меток
+        self.track_label.setStyleSheet("color: #E0E0E0;")
+        self.artist_label.setStyleSheet("color: #E0E0E0;")
+        # Специально делаем текст 'Похожие треки:' чёрным
+        self.similar_label.setStyleSheet("color: #000000;")
 
-    def _style_sheet(self):
+    def _light_style_sheet(self):
         return """
         QLineEdit, QTextEdit, QTreeWidget {
             border: 1px solid #ccc; border-radius: 4px; padding: 6px;
@@ -135,6 +155,41 @@ class LyricsClient(QMainWindow):
         }
         """
 
+    def _dark_style_sheet(self):
+        return """
+        QLineEdit, QTextEdit, QTreeWidget {
+            border: 1px solid #555; border-radius: 4px; padding: 6px;
+            font-size: 14px; background-color: #333333; color: #E0E0E0;
+        }
+        QPushButton {
+            background-color: #D32F2F; color: white; border: none;
+            border-radius: 4px; padding: 8px 12px; font-size: 14px; min-width: 80px;
+        }
+        QPushButton:hover {
+            background-color: #B71C1C;
+        }
+        QHeaderView::section {
+            background-color: #444444; padding: 4px; border: none; font-weight: bold; color: #E0E0E0;
+        }
+        QStatusBar {
+            background-color: #222222; padding: 2px; color: #E0E0E0;
+        }
+        QProgressBar {
+            border: 1px solid #555; border-radius: 10px; background: #444444;
+            height: 14px; text-align: center;
+        }
+        QProgressBar::chunk {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #ff8a80, stop:1 #ff1744);
+            border-radius: 10px; width: 1px;
+        }
+        QMainWindow {
+            background-color: #000000;
+            border-top: 4px solid #000000;
+        }
+        QLabel { color: #E0E0E0; }
+        """
+
     def _initialize_ui(self):
         self.setWindowTitle("Lyrics Insight")
         self.setGeometry(100, 100, 900, 650)
@@ -145,7 +200,19 @@ class LyricsClient(QMainWindow):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(8)
 
+        # Панель поиска
         layout.addLayout(self._create_search_bar())
+
+        # Кнопка переключения темы
+        self.theme_btn = QPushButton("☀️")
+        self.theme_btn.setFixedSize(32, 32)
+        self.theme_btn.clicked.connect(self.toggle_theme)
+        theme_layout = QHBoxLayout()
+        theme_layout.addWidget(self.theme_btn)
+        theme_layout.addStretch()
+        layout.addLayout(theme_layout)
+
+        # Прогрессбар
         self.progress = QProgressBar()
         self.progress.setVisible(False)
         self.progress.setRange(0, 0)
@@ -153,20 +220,33 @@ class LyricsClient(QMainWindow):
         self.progress.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         layout.addWidget(self.progress)
 
+        # Основной сплиттер
         layout.addWidget(self._create_splitter())
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
 
+    def toggle_theme(self):
+        if self.is_dark:
+            self.apply_light_theme()
+            self.theme_btn.setText("☀️")
+            self.is_dark = False
+        else:
+            self.apply_dark_theme()
+            self.theme_btn.setText("🌙")
+            self.is_dark = True
+
     def _create_search_bar(self):
         layout = QHBoxLayout()
+        self.track_label = QLabel("Трек:")
         self.track_input = QLineEdit(placeholderText="Название трека")
+        self.artist_label = QLabel("Исполнитель:")
         self.artist_input = QLineEdit(placeholderText="Исполнитель")
         font = QFont(); font.setPointSize(13)
         self.track_input.setFont(font); self.artist_input.setFont(font)
         search_btn = QPushButton("Найти текст")
         search_btn.clicked.connect(self.start_search)
-        layout.addWidget(QLabel("Трек:")); layout.addWidget(self.track_input)
-        layout.addWidget(QLabel("Исполнитель:")); layout.addWidget(self.artist_input)
+        layout.addWidget(self.track_label); layout.addWidget(self.track_input)
+        layout.addWidget(self.artist_label); layout.addWidget(self.artist_input)
         layout.addWidget(search_btn)
         return layout
 
@@ -182,7 +262,9 @@ class LyricsClient(QMainWindow):
         left = QWidget(); left.setLayout(lyrics_box)
 
         similar_box = QVBoxLayout()
-        similar_box.addWidget(QLabel("Похожие треки:"))
+        # Сохраняем метку "Похожие треки:"
+        self.similar_label = QLabel("Похожие треки:")
+        similar_box.addWidget(self.similar_label)
         self.tree = QTreeWidget()
         self.tree.setHeaderLabels(["Исполнитель", "Трек", "Схожесть, %", "Разница тона"])
         self.tree.setMinimumWidth(350)
@@ -212,7 +294,7 @@ class LyricsClient(QMainWindow):
         self._run_worker("get_lyrics", {"track_name": track, "artist": artist}, self.on_lyrics)
 
     def load_similar(self):
-        if not self.last_track or not self.last_artist:
+        if not getattr(self, 'last_track', None) or not getattr(self, 'last_artist', None):
             self.status_bar.showMessage("Сначала найдите текст трека", 3000)
             return
         self._run_worker("find_similar", {
@@ -241,7 +323,7 @@ class LyricsClient(QMainWindow):
             node = QTreeWidgetItem([
                 item["artist"], item["track"],
                 f"{item['similarity']:.2f}",
-                f"{item['tone_diff']:.3f}"
+                f"{item['tone_diff']:.3f}" 
             ])
             self._apply_similarity_color(node, item['similarity'])
             self.tree.addTopLevelItem(node)
@@ -256,6 +338,12 @@ class LyricsClient(QMainWindow):
             color = QColor("#fffde7")
         else:
             return
+        # Устанавливаем цвет текста согласно теме
+        if self.is_dark:
+            node.setForeground(0, QColor("#000000"))
+            node.setForeground(1, QColor("#000000"))
+            node.setForeground(2, QColor("#000000"))
+            node.setForeground(3, QColor("#000000"))
         for i in range(4):
             node.setBackground(i, color)
 
@@ -285,6 +373,7 @@ if __name__ == "__main__":
     import signal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
     app.setFont(QFont("Segoe UI", 11))
     window = LyricsClient()
     window.show()
