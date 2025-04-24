@@ -16,10 +16,10 @@ import backoff
 load_dotenv()
 
 # Configuration
-GENIUS_TOKEN    = os.getenv("GENIUS_TOKEN")
-LASTFM_API_KEY  = os.getenv("LASTFM_API_KEY")
+GENIUS_TOKEN = os.getenv("GENIUS_TOKEN", "OheKD5f6K0vm_3aKWGfb5wE8Et4bkt_TTzXRVWcRr1Ywlb8VU1yMxVC6dATKMiw7")
+LASTFM_API_KEY = os.getenv("LASTFM_API_KEY", "3bfa7b7aa77348f7de800e8f90af0a51")
 SERVER_URL      = os.getenv("SERVER_URL", "http://localhost:8000/get_lyrics")
-MAX_REQUESTS    = int(os.getenv("MAX_REQUESTS", "600"))
+MAX_REQUESTS    = int(os.getenv("MAX_REQUESTS", "1000"))
 WORKERS         = int(os.getenv("WORKERS", "8"))
 REQUEST_TIMEOUT = float(os.getenv("REQUEST_TIMEOUT", "90"))
 GENIUS_TIMEOUT  = float(os.getenv("GENIUS_TIMEOUT", "30"))
@@ -212,3 +212,4 @@ if __name__ == "__main__":
         logger.error(f"Fatal error: {e}")
     finally:
         logger.info(f"Total time: {(time.time() - start)/60:.2f} min")
+
