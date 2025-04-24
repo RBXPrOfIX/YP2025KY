@@ -80,12 +80,20 @@ async def find_similar(request: Request, track_name: str, artist: str, db: Sessi
             bonus += 0.01 * (len(common_themes) / len(src_themes | cand["themes"]) if src_themes | cand["themes"] else 0)
             text_bonus = min(cand["length"], 400) / 400
 
-            score = (0.5 * sb_sim + 0.4 * cos_sim + 0.1 * (1 - emo_diff)) * bonus * text_bonus
+            # Основная часть скоринга
+            raw_score = (0.5 * sb_sim + 0.4 * cos_sim + 0.1 * (1 - emo_diff)) * bonus * text_bonus
+
+            # Ужесточаем: если трек отличается по названию или артисту, добавляем небольшой штраф
+            if cand["title"] != track_name or cand["artist"] != artist:
+                raw_score *= 0.97  # уменьшить максимум для разных треков
+
+            # Ограничиваем до значения чуть ниже 1, чтобы не было 100%
+            raw_score = min(raw_score, 0.9999)
 
             results.append({
                 "track": cand["title"],
                 "artist": cand["artist"],
-                "similarity": round(min(max(score, 0), 1) * 100, 2),
+                "similarity": round(raw_score * 100, 2),
                 "sbert_similarity": round(max(sb_sim, 0) * 100, 2),
                 "cosine_semantic": round(max(cos_sim, 0) * 100, 2),
                 "tone_diff": round(emo_diff, 3),
@@ -108,4 +116,3 @@ async def find_similar(request: Request, track_name: str, artist: str, db: Sessi
     except Exception as e:
         logger.exception("Ошибка в /find_similar")
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
-
