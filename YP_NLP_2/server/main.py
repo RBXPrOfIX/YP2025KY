@@ -3,6 +3,9 @@ from fastapi import FastAPI
 from config import logger, GENIUS_TOKEN
 from api.endpoints import router as api_router
 import lyricsgenius
+from database import init_db
+
+init_db()
 
 # Инициализация FastAPI
 app = FastAPI(title="Lyrics Semantic API")
