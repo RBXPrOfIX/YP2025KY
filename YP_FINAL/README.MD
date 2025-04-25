@@ -47,6 +47,12 @@ GENIUS_TOKEN=<ваш_Genius_API_токен>
 LASTFM_API_KEY=<ваш_LastFM_API_ключ>
 ```
 
+## Получение API-токенов
+
+- **Genius**: зарегистрируйтесь и создайте приложение на официальном сайте [Genius API](https://genius.com/api-clients)
+- **Last.fm**: получите API-ключ на странице [Last.fm API](https://www.last.fm/api/account/create)
+
+
 ## 3. Установка Docker Desktop
 
 1. Скачайте и установите [Docker Desktop](https://www.docker.com/products/docker-desktop) для вашей ОС.
@@ -123,4 +129,3 @@ python main.py
 ---
 
 Теперь система полностью готова к работе: вы можете наполнять базу данными, запускать сервер и клиент любым удобным способом и использовать API для дальнейшей интеграции.
-
