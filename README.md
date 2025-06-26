@@ -247,7 +247,7 @@ lyrics-insight/
     └── api/                 # маршруты REST API
         └── endpoints.py
 ```
-
+Ссылка на установщик клиентского приложения - https://disk.yandex.ru/d/Ua2pZmZZMR1pWw
 ---
 
 *Создано с любовью к музыке и к чистому коду!*
